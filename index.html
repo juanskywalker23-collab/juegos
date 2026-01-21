@@ -3,24 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>TE AMO MONSE - MOBILE FIX</title>
+  <title>TE AMO MONSE - FIX FINAL</title>
   <style>
     body { background: #000; color: white; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; touch-action: manipulation; }
     h1 { color: #ff4da6; text-shadow: 0 0 10px #ff4da6; margin: 10px 0; font-size: 24px; }
     #menu { display: flex; flex-direction: column; gap: 15px; text-align: center; }
     .btn { background: none; border: 2px solid #ff4da6; color: white; padding: 12px 24px; font-family: inherit; cursor: pointer; border-radius: 8px; font-size: 18px; transition: 0.3s; }
-    canvas { border: 2px solid #ff4da6; display: none; background: #000; max-width: 95vw; max-height: 60vh; touch-action: none; }
+    canvas { border: 2px solid #ff4da6; display: none; background: #000; max-width: 95vw; max-height: 55vh; touch-action: none; }
     #hud { margin-top: 5px; display: none; font-size: 16px; color: #ff4da6; text-align: center; font-weight: bold; }
     
-    /* Controles Laberinto */
-    #controls { display: none; grid-template-columns: repeat(3, 60px); gap: 10px; margin-top: 15px; }
-    .tbtn { width: 60px; height: 60px; background: rgba(255, 77, 166, 0.2); border: 2px solid #ff4da6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; user-select: none; -webkit-tap-highlight-color: transparent; }
+    /* CONTROLES CORREGIDOS */
+    #controls { display: none; grid-template-columns: repeat(3, 70px); gap: 10px; margin-top: 15px; justify-content: center; }
+    .tbtn { width: 70px; height: 70px; background: rgba(255, 77, 166, 0.3); border: 3px solid #ff4da6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; user-select: none; -webkit-tap-highlight-color: transparent; active { background: #ff4da6; } }
     
-    #gameOverOverlay { 
-      position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
-      background: rgba(0,0,0,0.9); display: none; flex-direction: column; 
-      align-items: center; justify-content: center; z-index: 100;
-    }
+    #gameOverOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
     #gameOverOverlay h2 { color: #ff4da6; font-size: 40px; text-shadow: 0 0 20px #ff4da6; }
   </style>
 </head>
@@ -44,8 +40,8 @@
   <canvas id="gameCanvas" width="600" height="600"></canvas>
 
   <div id="controls">
-    <div></div><div class="tbtn" onmousedown="move('up')" ontouchstart="move('up')">↑</div><div></div>
-    <div class="tbtn" onmousedown="move('left')" ontouchstart="move('left')">←</div><div class="tbtn" onmousedown="move('down')" ontouchstart="move('down')">↓</div><div class="tbtn" onmousedown="move('right')" ontouchstart="move('right')">→</div>
+    <div></div><div class="tbtn" id="btnUp">↑</div><div></div>
+    <div class="tbtn" id="btnLeft">←</div><div class="tbtn" id="btnDown">↓</div><div class="tbtn" id="btnRight">→</div>
   </div>
 
   <button class="btn" id="backBtn" style="display:none; margin-top:10px;" onclick="location.reload()">Menú Principal</button>
@@ -57,28 +53,20 @@
     const controls = document.getElementById('controls'), backBtn = document.getElementById('backBtn');
     
     let score = 0, lives = 3, gameLoop, currentMode = '', gameActive = true, invul = 0;
-    const mazeLayout = [
-        "1111111111111111111111111","1000000000110000000000001","1011111110110111111111101",
-        "1010000010000001000000101","1010111011111111011100101","1010001000000000010000101",
-        "1011101110111111011110101","1000100000100000010000100","1110111111101111110110111",
-        "1000000000001000000000001","1011111111111011111111101","1010000000000010000000101",
-        "1010111111111110111110101","1010000000000000000000101","1011111011111111111011101",
-        "1000001000000000001000001","1111101111110111110111111","1000000000010000000000001",
-        "1011111111011111111111101","1010000000010000000000101","1010111111111111111100101",
-        "1010000000000000000000101","1011111111110111111111101","1000000000000000000000001",
-        "1111111111111111111111111"
-    ].map(r => r.split('').map(Number));
+    const mazeLayout = ["1111111111111111111111111","1000000000110000000000001","1011111110110111111111101","1010000010000001000000101","1010111011111111011100101","1010001000000000010000101","1011101110111111011110101","1000100000100000010000100","1110111111101111110110111","1000000000001000000000001","1011111111111011111111101","1010000000000010000000101","1010111111111110111110101","1010000000000000000000101","1011111011111111111011101","1000001000000000001000001","1111101111110111110111111","1000000000010000000000001","1011111111011111111111101","1010000000010000000000101","1010111111111111111100101","1010000000000000000000101","1011111111110111111111101","1000000000000000000000001","1111111111111111111111111"].map(r => r.split('').map(Number));
 
     let player = { x: 1, y: 1, dx: 0, dy: 0, power: 0, last: 0 };
     let ghosts = [], carrots = [], hearts = [];
-    let bird = { y: 300, dy: 0, gravity: 0.15, jump: -4.2 }, pipes = [], frame = 0, flappyStarted = false;
+    let bird = { y: 300, dy: 0, gravity: 0.24, jump: -5.8 }, pipes = [], frame = 0, flappyStarted = false;
 
-    function move(dir) {
-        if(dir==='up'){player.dx=0; player.dy=-1;}
-        if(dir==='down'){player.dx=0; player.dy=1;}
-        if(dir==='left'){player.dx=-1; player.dy=0;}
-        if(dir==='right'){player.dx=1; player.dy=0;}
-    }
+    // LÓGICA DE MOVIMIENTO CORREGIDA
+    function setDir(x, y) { player.dx = x; player.dy = y; }
+
+    // Eventos táctiles para el Laberinto
+    document.getElementById('btnUp').ontouchstart = () => setDir(0, -1);
+    document.getElementById('btnDown').ontouchstart = () => setDir(0, 1);
+    document.getElementById('btnLeft').ontouchstart = () => setDir(-1, 0);
+    document.getElementById('btnRight').ontouchstart = () => setDir(1, 0);
 
     function initMaze() {
       currentMode = 'MAZE'; setupUI();
@@ -95,16 +83,15 @@
 
     function initFlappy() {
       currentMode = 'FLAPPY'; setupUI();
-      // El salto ahora se activa tanto con clic como con toque
+      controls.style.display = 'none';
       const jumpAction = (e) => { 
         if(currentMode === 'FLAPPY' && gameActive) {
-            flappyStarted = true; 
-            bird.dy = bird.jump; 
-            if(e) e.preventDefault();
+            flappyStarted = true; bird.dy = bird.jump; 
+            if(e && e.cancelable) e.preventDefault();
         }
       };
-      canvas.onmousedown = jumpAction;
       canvas.ontouchstart = jumpAction;
+      canvas.onmousedown = jumpAction;
       run();
     }
 
@@ -126,7 +113,7 @@
 
     function updateMaze(t) {
       if(player.power > 0) { player.power--; powerEl.style.display = 'inline'; } else powerEl.style.display = 'none';
-      if(t - player.last > 160) {
+      if(t - player.last > 150) {
         if(mazeLayout[player.y+player.dy]?.[player.x+player.dx]===0) { player.x+=player.dx; player.y+=player.dy; }
         player.last = t;
       }
@@ -140,7 +127,7 @@
         }
         if(g.x===player.x && g.y===player.y) {
           if(player.power>0) { g.x=12; g.y=12; score+=100; scoreEl.innerText=score; }
-          else { lives--; livesEl.innerText=lives; player.x=1; player.y=1; if(lives<=0) die(); }
+          else { lives--; livesEl.innerText=lives; player.x=1; player.y=1; player.dx=0; player.dy=0; if(lives<=0) die(); }
         }
       });
       ctx.strokeStyle = '#ff4da6';
@@ -155,36 +142,27 @@
 
     function updateFlappy() {
       if(!flappyStarted) { 
-        ctx.fillStyle="white"; ctx.font="24px Courier New"; 
-        ctx.fillText("TOCA PARA SALTAR", 190, 300); 
+        ctx.fillStyle="white"; ctx.font="28px Courier New"; 
+        ctx.fillText("TOCA PARA SALTAR", 180, 300); 
       } else {
         bird.dy += bird.gravity; bird.y += bird.dy;
         if(invul > 0) invul--;
-        if(frame++ % 90 === 0) pipes.push({x:600, h: Math.random()*250+120, counted: false});
+        if(frame++ % 75 === 0) pipes.push({x:600, h: Math.random()*250+120, counted: false});
         pipes.forEach(p => {
-          p.x -= 3.5; ctx.fillStyle = '#ff4da6';
-          ctx.fillRect(p.x, 0, 50, p.h-90); ctx.fillRect(p.x, p.h+90, 50, 600);
-          if(invul===0 && p.x<90 && p.x>10 && (bird.y<p.h-85 || bird.y>p.h+75)) { 
-            lives--; livesEl.innerText=lives; invul=60; 
-            if(lives<=0) die(); 
+          p.x -= 4.8; ctx.fillStyle = '#ff4da6';
+          ctx.fillRect(p.x, 0, 50, p.h-95); ctx.fillRect(p.x, p.h+95, 50, 600);
+          if(invul===0 && p.x<95 && p.x>10 && (bird.y<p.h-90 || bird.y>p.h+80)) { 
+            lives--; livesEl.innerText=lives; invul=60; if(lives<=0) die(); 
           }
           if(!p.counted && p.x<40) { score++; scoreEl.innerText=score; p.counted=true; }
         });
         pipes = pipes.filter(p => p.x > -60);
         if(bird.y>600 || bird.y<0) { lives--; livesEl.innerText=lives; bird.y=300; bird.dy=0; invul=60; if(lives<=0) die(); }
       }
-      if(invul%10 < 5) { ctx.font='40px Arial'; ctx.fillText('🐰', 40, bird.y); }
+      if(invul%10 < 5) { ctx.font='45px Arial'; ctx.fillText('🐰', 40, bird.y); }
     }
 
     function die() { gameActive = false; document.getElementById('gameOverOverlay').style.display = 'flex'; }
-
-    window.addEventListener('keydown', e => {
-      if(e.key.includes('Arrow')) { move(e.key.replace('Arrow','').toLowerCase()); e.preventDefault(); }
-      if(e.code==='Space') { 
-        if(currentMode==='FLAPPY') { flappyStarted=true; bird.dy=bird.jump; } 
-        e.preventDefault(); 
-      }
-    });
   </script>
 </body>
 </html>
