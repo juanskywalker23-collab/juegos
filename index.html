@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>TE AMO MONSE - FIX FINAL</title>
+  <title>TE AMO MONSE - TURBO FIX</title>
   <style>
     body { background: #000; color: white; font-family: 'Courier New', monospace; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; touch-action: manipulation; }
     h1 { color: #ff4da6; text-shadow: 0 0 10px #ff4da6; margin: 10px 0; font-size: 24px; }
@@ -11,20 +11,17 @@
     .btn { background: none; border: 2px solid #ff4da6; color: white; padding: 12px 24px; font-family: inherit; cursor: pointer; border-radius: 8px; font-size: 18px; transition: 0.3s; }
     canvas { border: 2px solid #ff4da6; display: none; background: #000; max-width: 95vw; max-height: 55vh; touch-action: none; }
     #hud { margin-top: 5px; display: none; font-size: 16px; color: #ff4da6; text-align: center; font-weight: bold; }
-    
-    /* CONTROLES CORREGIDOS */
-    #controls { display: none; grid-template-columns: repeat(3, 70px); gap: 10px; margin-top: 15px; justify-content: center; }
-    .tbtn { width: 70px; height: 70px; background: rgba(255, 77, 166, 0.3); border: 3px solid #ff4da6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 30px; user-select: none; -webkit-tap-highlight-color: transparent; active { background: #ff4da6; } }
-    
+    #controls { display: none; grid-template-columns: repeat(3, 75px); gap: 12px; margin-top: 15px; justify-content: center; }
+    .tbtn { width: 75px; height: 75px; background: rgba(255, 77, 166, 0.3); border: 3px solid #ff4da6; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; user-select: none; -webkit-tap-highlight-color: transparent; }
     #gameOverOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 100; }
-    #gameOverOverlay h2 { color: #ff4da6; font-size: 40px; text-shadow: 0 0 20px #ff4da6; }
+    #gameOverOverlay h2 { color: #ff4da6; font-size: 45px; text-shadow: 0 0 20px #ff4da6; }
   </style>
 </head>
 <body>
 
   <div id="gameOverOverlay">
     <h2>GAME OVER</h2>
-    <p style="color:pink; font-size:24px;">TE AMO MONSE ❤️</p>
+    <p style="color:pink; font-size:26px;">TE AMO MONSE ❤️</p>
     <button class="btn" onclick="location.reload()">REINTENTAR</button>
   </div>
 
@@ -57,16 +54,18 @@
 
     let player = { x: 1, y: 1, dx: 0, dy: 0, power: 0, last: 0 };
     let ghosts = [], carrots = [], hearts = [];
-    let bird = { y: 300, dy: 0, gravity: 0.24, jump: -5.8 }, pipes = [], frame = 0, flappyStarted = false;
+    
+    // FISICAS TURBO PARA FLAPPY
+    let bird = { y: 300, dy: 0, gravity: 0.38, jump: -7.5 }; 
+    let pipes = [], frame = 0, flappyStarted = false;
 
-    // LÓGICA DE MOVIMIENTO CORREGIDA
     function setDir(x, y) { player.dx = x; player.dy = y; }
 
-    // Eventos táctiles para el Laberinto
-    document.getElementById('btnUp').ontouchstart = () => setDir(0, -1);
-    document.getElementById('btnDown').ontouchstart = () => setDir(0, 1);
-    document.getElementById('btnLeft').ontouchstart = () => setDir(-1, 0);
-    document.getElementById('btnRight').ontouchstart = () => setDir(1, 0);
+    // Eventos táctiles corregidos
+    document.getElementById('btnUp').ontouchstart = (e) => { e.preventDefault(); setDir(0, -1); };
+    document.getElementById('btnDown').ontouchstart = (e) => { e.preventDefault(); setDir(0, 1); };
+    document.getElementById('btnLeft').ontouchstart = (e) => { e.preventDefault(); setDir(-1, 0); };
+    document.getElementById('btnRight').ontouchstart = (e) => { e.preventDefault(); setDir(1, 0); };
 
     function initMaze() {
       currentMode = 'MAZE'; setupUI();
@@ -101,6 +100,7 @@
       document.getElementById('hud').style.display = 'block';
       backBtn.style.display = 'block';
       score = 0; lives = 3; scoreEl.innerText = 0; livesEl.innerText = 3;
+      gameActive = true; flappyStarted = false; pipes = []; frame = 0;
     }
 
     function run(t) {
@@ -113,14 +113,14 @@
 
     function updateMaze(t) {
       if(player.power > 0) { player.power--; powerEl.style.display = 'inline'; } else powerEl.style.display = 'none';
-      if(t - player.last > 150) {
+      if(t - player.last > 140) {
         if(mazeLayout[player.y+player.dy]?.[player.x+player.dx]===0) { player.x+=player.dx; player.y+=player.dy; }
         player.last = t;
       }
       carrots = carrots.filter(c => c.x===player.x && c.y===player.y ? (score+=10, scoreEl.innerText=score, false) : true);
       hearts = hearts.filter(h => h.x===player.x && h.y===player.y ? (player.power=400, score+=50, scoreEl.innerText=score, false) : true);
       ghosts.forEach(g => {
-        if(t - g.last > 220) {
+        if(t - g.last > 200) {
           let ds = [{x:0,y:1},{x:0,y:-1},{x:1,y:0},{x:-1,y:0}].filter(d => mazeLayout[g.y+d.y]?.[g.x+d.x]===0);
           let n = ds[Math.floor(Math.random()*ds.length)];
           if(n){g.dx=n.x; g.dy=n.y; g.x+=g.dx; g.y+=g.dy;} g.last=t;
@@ -142,16 +142,21 @@
 
     function updateFlappy() {
       if(!flappyStarted) { 
-        ctx.fillStyle="white"; ctx.font="28px Courier New"; 
-        ctx.fillText("TOCA PARA SALTAR", 180, 300); 
+        ctx.fillStyle="white"; ctx.font="30px Courier New"; 
+        ctx.fillText("TOCA PARA SALTAR", 170, 300); 
       } else {
         bird.dy += bird.gravity; bird.y += bird.dy;
         if(invul > 0) invul--;
-        if(frame++ % 75 === 0) pipes.push({x:600, h: Math.random()*250+120, counted: false});
+        
+        // VELOCIDAD DE TUBOS AUMENTADA
+        if(frame++ % 65 === 0) pipes.push({x:600, h: Math.random()*250+120, counted: false});
         pipes.forEach(p => {
-          p.x -= 4.8; ctx.fillStyle = '#ff4da6';
-          ctx.fillRect(p.x, 0, 50, p.h-95); ctx.fillRect(p.x, p.h+95, 50, 600);
-          if(invul===0 && p.x<95 && p.x>10 && (bird.y<p.h-90 || bird.y>p.h+80)) { 
+          p.x -= 6.5; 
+          ctx.fillStyle = '#ff4da6';
+          ctx.fillRect(p.x, 0, 50, p.h-100); 
+          ctx.fillRect(p.x, p.h+100, 50, 600);
+          
+          if(invul===0 && p.x<95 && p.x>10 && (bird.y<p.h-95 || bird.y>p.h+85)) { 
             lives--; livesEl.innerText=lives; invul=60; if(lives<=0) die(); 
           }
           if(!p.counted && p.x<40) { score++; scoreEl.innerText=score; p.counted=true; }
